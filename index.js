@@ -15,41 +15,156 @@ const app = new App({
     console.log('⚡️ Bolt app is running!');
 })();
 
+let moderationChannel = null;;
+let channelForModeration = null;
+
 app.event('app_home_opened', async ({ event, client }) => {
     try {
-        /* view.publish is the method that your app uses to push a view to the Home tab */
-        const result = await client.views.publish({
+        const user = await client.users.info({ user: event.user });
 
-            /* the user that opened your app's app home */
-            user_id: event.user,
-
-            /* the view object that appears in the app home*/
-            view: {
-                type: 'home',
-                callback_id: 'home_view',
-
-                /* body of the view */
-                blocks: [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Приветствую вас в боте _Moderator_*"
+        if (channelForModeration && moderationChannel) {
+            await client.views.publish({
+                user_id: event.user,
+                view: {
+                    "external_id": `${event.user}_id`,
+                    "type": "home",
+                    "blocks": user.user.is_admin ? [
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Добро пожаловать в бота Moderator",
+                                "emoji": true
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": "Отлично, бот настроен!",
+                                    "emoji": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
+                                    "emoji": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Настройка"
+                                    },
+                                    "value": event.user,
+                                    "action_id": "moderator_action_settings"
+                                }
+                            ]
                         }
-                    },
-                    {
-                        "type": "divider"
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "Этот бот создан для модерации сообщений"
+                    ] : [
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Добро пожаловать в бота Moderator",
+                                "emoji": true
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": "Отлично, бот настроен!",
+                                    "emoji": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": !user.user.is_admin ? `Бот работает в ${channelForModeration.length > 1 ? 'чатах: ' : 'чате: '}${channelForModeration.map(el => `#${el.text.text}`).join(', ')}` : `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
+                                    "emoji": true
+                                }
+                            ]
                         }
-                    }
-                ]
-            }
-        });
+                    ]
+                }
+            });
+        } else {
+            await client.views.publish({
+                user_id: event.user,
+                view: {
+                    "external_id": `${event.user}_id`,
+                    "type": "home",
+                    "blocks": user.user.is_admin ? [
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Добро пожаловать в бота Moderator",
+                                "emoji": true
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": "Чтобы настроить бота, нажмите на кнопку ниже",
+                                    "emoji": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Настройка"
+                                    },
+                                    "value": event.user,
+                                    "action_id": "moderator_action_settings"
+                                }
+                            ]
+                        }
+                    ] : [
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Добро пожаловать в бота Moderator",
+                                "emoji": true
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": "Данный бот ещё не настроен. Сделать это может администратор.",
+                                    "emoji": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            });
+        }
     }
     catch (error) {
         console.error(error);
@@ -57,14 +172,12 @@ app.event('app_home_opened', async ({ event, client }) => {
 });
 
 app.event('message', async ({ event, message, client, payload }) => {
-    if (payload.hidden || message.bot_id) return;
-    const channels = await client.conversations.list({ types: 'private_channel, public_channel' });
+    if (payload.hidden || message.bot_id || channelForModeration && !channelForModeration.some(el => el.value === event.channel)) return;
 
     const users = await client.users.list();
     const fromUser = users.ok && users.members.find(el => el.id === event.user);
-    const worksChannel = channels.channels.find(el => el.id === event.channel);
 
-    if (worksChannel.name !== 'разработка' || message.parent_user_id) return;
+    if (!moderationChannel || message.parent_user_id) return;
 
     try {
         await client.chat.delete({
@@ -79,67 +192,61 @@ app.event('message', async ({ event, message, client, payload }) => {
             text: "Ваше сообщение будет опубликовано после проверки модератором."
         });
 
-        const channelName = "verify-channel";
-
-        const channel = channels.channels.find(el => el.name === channelName);
-
-        if (channel) {
-            await app.client.chat.postMessage({
-                channel: channel.id,
-                text: message.text,
-                blocks: [
-                    {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": `Новое сообщение от <@${fromUser && fromUser.name}>`
-                        }
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "plain_text",
-                            "text": message.text
-                        }
-                    },
-                    {
-                        "type": "divider"
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": `Опубликовать сообщение в канале #разработка ?`
-                        }
-                    },
-                    {
-                        "type": "actions",
-                        "block_id": "verify_actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Отклонить"
-                                },
-                                "value": "ok",
-                                "action_id": "verify_cancel_button"
-                            },
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Подтвердить"
-                                },
-                                "value": fromUser.name,
-                                "action_id": "verify_ok_button"
-                            }
-                        ]
+        await app.client.chat.postMessage({
+            channel: moderationChannel.value,
+            text: message.text,
+            blocks: [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `Новое сообщение от <@${fromUser && fromUser.name}>`
                     }
-                ]
-            })
-        }
-
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": message.text
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Опубликовать сообщение в канале #${channelForModeration.find(el => el.value === event.channel).text.text} ?`
+                    }
+                },
+                {
+                    "type": "actions",
+                    "block_id": "verify_actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Отклонить"
+                            },
+                            "value": "ok",
+                            "action_id": "verify_cancel_button"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Подтвердить"
+                            },
+                            "value": `${channelForModeration.find(el => el.value === event.channel).text.text} ${fromUser && fromUser.name}`,
+                            "action_id": "verify_ok_button",
+                            "style": "primary"
+                        }
+                    ]
+                }
+            ]
+        })
     }
     catch (error) {
         console.error(error);
@@ -149,12 +256,11 @@ app.event('message', async ({ event, message, client, payload }) => {
 app.action("verify_ok_button", async ({ ack, body, client, action }) => {
     await ack();
 
-    const channels = await client.conversations.list();
-    const redirectChannel = channels.channels.find(el => el.name === "разработка")
+    const channelToPost = channelForModeration.find(el => el.text.text === action.value.split(' ')[0]);
 
     try {
         await client.chat.postMessage({
-            channel: redirectChannel.id,
+            channel: channelToPost.value,
             text: body.message.text,
             blocks: [
                 {
@@ -164,7 +270,7 @@ app.action("verify_ok_button", async ({ ack, body, client, action }) => {
                     "type": "section",
                     "text": {
                         "type": "plain_text",
-                        "text": `Сообщение от <@${action.value}>`
+                        "text": `Сообщение от <@${action.value.split(' ')[1]}>`
                     }
                 },
                 {
@@ -201,3 +307,189 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
         console.error(e)
     }
 });
+
+app.action("moderator_action_settings", async ({ ack, client, body, action }) => {
+    await ack();
+
+    const list = await client.conversations.list({ types: "public_channel, private_channel" });
+
+    const channelsAsOptions = list.channels.map(ch => ({
+        "text": {
+            "type": "plain_text",
+            "text": ch.name
+        },
+        "value": ch.id
+    }))
+
+    try {
+        await client.views.open({
+            trigger_id: body.trigger_id,
+            view: {
+                "callback_id": "settings_callback",
+                "type": "modal",
+                "title": {
+                    "type": "plain_text",
+                    "text": "Moderator - настройка",
+                    "emoji": true
+                },
+                "submit": {
+                    "type": "plain_text",
+                    "text": "Подтвердить",
+                    "emoji": true
+                },
+                "close": {
+                    "type": "plain_text",
+                    "text": "Отмена",
+                    "emoji": true,
+
+                },
+                "blocks": [
+                    {
+                        "block_id": "channel_for_moderation",
+                        "type": "input",
+                        "element": {
+                            "type": "multi_static_select",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Выберите канал для модерации",
+                                "emoji": true
+                            },
+                            "options": channelsAsOptions,
+                            "action_id": "static_select-action",
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Канал для модерации",
+                            "emoji": true
+                        }
+                    },
+                    {
+                        "block_id": "moderator_channel",
+                        "type": "input",
+                        "element": {
+                            "type": "static_select",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Выберите канал модератора",
+                                "emoji": true
+                            },
+                            "options": channelsAsOptions,
+                            "action_id": "static_select-action"
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Канал модератора",
+                            "emoji": true
+                        }
+                    }
+                ]
+            }
+        })
+    } catch (e) {
+        console.error(e)
+    }
+});
+
+app.view("settings_callback", async ({ ack, view, client, body }) => {
+    function validate(sourse, target) {
+        const errors = {};
+
+        if (target.includes(sourse)) {
+            errors.moderator_channel = 'Канал должен отличатся';
+            return errors;
+        }
+        return false;
+    }
+
+    const channels = await client.conversations.list({ types: 'public_channel, private_channel' });
+
+    try {
+        channelForModeration = view.state.values.channel_for_moderation['static_select-action']['selected_options'] || null;
+        moderationChannel = view.state.values.moderator_channel['static_select-action']['selected_option'] || null;
+        const ids = channelForModeration.map(it => it.value)
+        const isInChannelForModeration = ids.filter(el => !channels.channels.some(it => it.is_member && it.id === el))
+        const isInModerationChannel = channels.channels.find(el => el.id === moderationChannel.value);
+
+        const err = validate(moderationChannel.value, channelForModeration.map(el => el.value))
+
+        if (err) {
+            await ack({
+                response_action: 'errors',
+                errors: err
+            })
+        } else {
+            await ack();
+            if (isInChannelForModeration.length) {
+                try {
+                    isInChannelForModeration.forEach(async (newChannel) => {
+                        await client.conversations.join({
+                            channel: newChannel
+                        })
+                    })
+                } catch (e) {
+                    console.warn(e)
+                }
+            }
+            if (!isInModerationChannel.is_member) {
+                await client.conversations.join({
+                    channel: moderationChannel.value
+                })
+            }
+
+            if (channelForModeration && moderationChannel) {
+                await client.views.publish({
+                    user_id: body.user.id,
+                    view: {
+                        "type": "home",
+                        "blocks": [
+                            {
+                                "type": "header",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Добро пожаловать в бота Moderator",
+                                    "emoji": true
+                                }
+                            },
+                            {
+                                "type": "context",
+                                "elements": [
+                                    {
+                                        "type": "plain_text",
+                                        "text": "Отлично, бот настроен!",
+                                        "emoji": true
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "context",
+                                "elements": [
+                                    {
+                                        "type": "plain_text",
+                                        "text": `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
+                                        "emoji": true
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "actions",
+                                "elements": [
+                                    {
+                                        "type": "button",
+                                        "text": {
+                                            "type": "plain_text",
+                                            "text": "Настройка"
+                                        },
+                                        "value": `${body.user.id}`,
+                                        "action_id": "moderator_action_settings"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                });
+            }
+        }
+    } catch (e) {
+        console.error(e)
+    }
+})
