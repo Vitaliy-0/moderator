@@ -1,0 +1,15 @@
+{
+  "name": "slackbot",
+  "version": "0.1.0",
+  "description": "Slack moderator bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "Voitovich Vitalii",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/bolt": "^3.11.3",
+    "dotenv": "^16.0.1"
+  }
+}
