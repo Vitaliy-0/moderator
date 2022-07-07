@@ -32,7 +32,7 @@ test_job:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && echo "$ENV_FILE" > .env && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && echo "$ENV_INFO" > .env && exit"
   tags:
     - zendo_docker
 
