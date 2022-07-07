@@ -4,7 +4,7 @@ stages:
   - deploy
 
 
-.pull_code:
+pull_code:
   stage: pull
   image: ruby:2.5
   before_script:
@@ -16,15 +16,13 @@ stages:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git && echo "$ENV_INFO" > .env && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git &&  exit"
   tags:
     - zendo_docker
 
 test_job:
-  stage: pull
-  image: docker:19.03.12
-  services:
-    - docker:19.03.12-dind
+  stage: test
+  image: ruby:2.5
   before_script:
   - apt-get update -qq
   - apt-get install -qq git
@@ -34,11 +32,11 @@ test_job:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && echo "$ENV_INFO" > .env && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && echo "$ENV_INFO" > test && exit"
   tags:
     - zendo_docker
 
-.deploy_code:
+deploy_code:
   stage: deploy
   image: ruby:2.5
   before_script:
