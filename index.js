@@ -17,6 +17,7 @@ const app = new App({
 
 let moderationChannel = null;;
 let channelForModeration = null;
+let usersWithoutModeration = [];
 
 app.event('app_home_opened', async ({ event, client }) => {
     try {
@@ -173,7 +174,7 @@ app.event('app_home_opened', async ({ event, client }) => {
 
 app.event('message', async ({ event, message, client, payload }) => {
     if (payload.hidden || message.bot_id || channelForModeration && !channelForModeration.some(el => el.value === event.channel)) return;
-
+    if (usersWithoutModeration.includes(event.user)) return;
     const users = await client.users.list();
     const fromUser = users.ok && users.members.find(el => el.id === event.user);
 
@@ -311,7 +312,7 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
 app.action("moderator_action_settings", async ({ ack, client, body, action }) => {
     await ack();
 
-    const list = await client.conversations.list({ types: "public_channel, private_channel" });
+    const list = await client.conversations.list({ types: "public_channel, private_channel, im, mpim" });
 
     const channelsAsOptions = list.channels.map(ch => ({
         "text": {
@@ -381,6 +382,24 @@ app.action("moderator_action_settings", async ({ ack, client, body, action }) =>
                             "text": "Канал модератора",
                             "emoji": true
                         }
+                    },
+                    {
+                        "block_id": "users_without_moderation",
+                        "type": "input",
+                        "element": {
+                            "type": "multi_users_select",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Выберите пользоватей",
+                                "emoji": true
+                            },
+                            "action_id": "multi_users_select-action"
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Пользователи без модерации",
+                            "emoji": true
+                        }
                     }
                 ]
             }
@@ -401,11 +420,12 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
         return false;
     }
 
-    const channels = await client.conversations.list({ types: 'public_channel, private_channel' });
+    const channels = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim' });
 
     try {
         channelForModeration = view.state.values.channel_for_moderation['static_select-action']['selected_options'] || null;
         moderationChannel = view.state.values.moderator_channel['static_select-action']['selected_option'] || null;
+        usersWithoutModeration = view.state.values['users_without_moderation']['multi_users_select-action']['selected_users'];
         const ids = channelForModeration.map(it => it.value)
         const isInChannelForModeration = ids.filter(el => !channels.channels.some(it => it.is_member && it.id === el))
         const isInModerationChannel = channels.channels.find(el => el.id === moderationChannel.value);
