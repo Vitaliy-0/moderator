@@ -1,6 +1,6 @@
 stages:          
   - pull
-  - test
+  - replace_env
   - deploy
 
 
@@ -20,8 +20,8 @@ pull_code:
   tags:
     - zendo_docker
 
-test_job:
-  stage: test
+replace_env:
+  stage: replace_env
   image: ruby:2.5
   before_script:
   - apt-get update -qq
@@ -32,7 +32,7 @@ test_job:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && sed -i 's/SLACK_SIGNING_SECRET = .*/SLACK_SIGNING_SECRET = $SLACK_SIGNING_SECRET /g' test && sed -i 's/SLACK_APP_TOKEN = .*/SLACK_APP_TOKEN = $SLACK_APP_TOKEN /g' test && sed -i 's/SLACK_BOT_TOKEN = .*/SLACK_BOT_TOKEN = $SLACK_BOT_TOKEN /g' test && sed -i 's/SLACK_PORT = .*/SLACK_PORT = $SLACK_PORT /g' test && sed -i 's/SLACK_USER_TOKEN = .*/SLACK_USER_TOKEN = $SLACK_USER_TOKEN /g' test  && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && sed -i 's/SLACK_SIGNING_SECRET = .*/SLACK_SIGNING_SECRET = $SLACK_SIGNING_SECRET /g' .env && sed -i 's/SLACK_APP_TOKEN = .*/SLACK_APP_TOKEN = $SLACK_APP_TOKEN /g' .env && sed -i 's/SLACK_BOT_TOKEN = .*/SLACK_BOT_TOKEN = $SLACK_BOT_TOKEN /g' .env && sed -i 's/SLACK_PORT = .*/SLACK_PORT = $SLACK_PORT /g' .env && sed -i 's/SLACK_USER_TOKEN = .*/SLACK_USER_TOKEN = $SLACK_USER_TOKEN /g' .env  && exit"
   tags:
     - zendo_docker
 
