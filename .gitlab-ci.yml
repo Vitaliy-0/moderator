@@ -1,9 +1,10 @@
 stages:          
   - pull
+  - test
   - deploy
 
 
-pull_code:
+.pull_code:
   stage: pull
   image: ruby:2.5
   before_script:
@@ -15,11 +16,27 @@ pull_code:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git && echo "$ENV_FILE" | sed '/^$/d' > .env && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git && echo "$ENV_FILE" > .env && exit"
   tags:
     - zendo_docker
 
-deploy_code:
+test_job:
+  stage: pull
+  image: ruby:2.5
+  before_script:
+  - apt-get update -qq
+  - apt-get install -qq git
+  - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY_PROD")
+  - mkdir -p ~/.ssh
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && echo "$ENV_FILE" > .env && exit"
+  tags:
+    - zendo_docker
+
+.deploy_code:
   stage: deploy
   image: ruby:2.5
   before_script:
