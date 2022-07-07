@@ -22,7 +22,9 @@ stages:
 
 test_job:
   stage: pull
-  image: ruby:2.5
+  image: docker:19.03.12
+  services:
+    - docker:19.03.12-dind
   before_script:
   - apt-get update -qq
   - apt-get install -qq git
