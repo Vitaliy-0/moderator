@@ -15,7 +15,7 @@ pull_code:
   - mkdir -p ~/.ssh
   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git && echo "$ENV_FILE" > .env && exit"
+    - ssh $ALIAS@$IP_PROD "cd ~/bot_n && git pull https://$ALIAS:$DEPLOY_TOKEN@gitlab.com/flawlessmlm/zendo2/core/stuff/bots/slackbot.git && echo "$ENV_FILE" | sed '/^$/d' > .env && exit"
   tags:
     - zendo_docker
 
