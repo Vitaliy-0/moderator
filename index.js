@@ -390,7 +390,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action }) =>
                             "type": "multi_users_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите пользоватей",
+                                "text": "Выберите пользователей",
                                 "emoji": true
                             },
                             "action_id": "multi_users_select-action"
