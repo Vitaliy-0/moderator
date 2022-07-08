@@ -312,7 +312,7 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
 app.action("moderator_action_settings", async ({ ack, client, body, action }) => {
     await ack();
 
-    const list = await client.conversations.list({ types: "public_channel,private_channel,im,mpim" });
+    const list = await client.conversations.list({ types: "public_channel,private_channel", limit: 100 });
     console.log(list)
     const channelsAsOptions = list.channels.map(ch => ({
         "text": {
