@@ -8,6 +8,8 @@ const app = new App({
     appToken: process.env.SLACK_APP_TOKEN
 });
 
+let isHelloMessage = false;
+
 (async () => {
     // Start your app
     await app.start(process.env.PORT || 3000);
@@ -22,6 +24,14 @@ let usersWithoutModeration = [];
 app.event('app_home_opened', async ({ event, client }) => {
     try {
         const user = await client.users.info({ user: event.user });
+
+        if (!isHelloMessage) {
+            await client.chat.postMessage({
+                channel: user.user.id,
+                text: 'hello'
+            })
+            isHelloMessage = true
+        }
 
         if (channelForModeration && moderationChannel) {
             await client.views.publish({
