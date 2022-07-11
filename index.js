@@ -34,29 +34,26 @@ app.event('app_home_opened', async ({ event, client }) => {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бота Moderator",
+                                "text": "Добро пожаловать в бот-Moderator!",
                                 "emoji": true
                             }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": "Отлично, бот настроен!",
-                                    "emoji": true
-                                }
-                            ]
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                "emoji": true
+                            }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
-                                    "emoji": true
-                                }
-                            ]
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+                                "emoji": true
+                            }
                         },
                         {
                             "type": "actions",
@@ -77,30 +74,27 @@ app.event('app_home_opened', async ({ event, client }) => {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бота Moderator",
+                                "text": "Добро пожаловать в бот-Moderator!",
                                 "emoji": true
                             }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": "Отлично, бот настроен!",
-                                    "emoji": true
-                                }
-                            ]
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                "emoji": true
+                            }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": !user.user.is_admin ? `Бот работает в ${channelForModeration.length > 1 ? 'чатах: ' : 'чате: '}${channelForModeration.map(el => `#${el.text.text}`).join(', ')}` : `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
-                                    "emoji": true
-                                }
-                            ]
-                        }
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+                                "emoji": true
+                            }
+                        },
                     ]
                 }
             });
@@ -115,7 +109,7 @@ app.event('app_home_opened', async ({ event, client }) => {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бота Moderator",
+                                "text": "Добро пожаловать в бот-Moderator!",
                                 "emoji": true
                             }
                         },
@@ -148,7 +142,7 @@ app.event('app_home_opened', async ({ event, client }) => {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бота Moderator",
+                                "text": "Добро пожаловать в бот-Moderator!",
                                 "emoji": true
                             }
                         },
@@ -483,29 +477,26 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
                                 "type": "header",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": "Добро пожаловать в бота Moderator",
+                                    "text": "Добро пожаловать в бот-Moderator!",
                                     "emoji": true
                                 }
                             },
                             {
-                                "type": "context",
-                                "elements": [
-                                    {
-                                        "type": "plain_text",
-                                        "text": "Отлично, бот настроен!",
-                                        "emoji": true
-                                    }
-                                ]
+                                "type": "section",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                    "emoji": true
+                                }
                             },
                             {
-                                "type": "context",
-                                "elements": [
-                                    {
-                                        "type": "plain_text",
-                                        "text": `${channelForModeration.length > 1 ? 'Чаты' : 'Чат'} для проверки сообщений: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}. Чат модерации: #${moderationChannel.text.text}`,
-                                        "emoji": true
-                                    }
-                                ]
+                                "type": "section",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+                                    "emoji": true
+                                }
                             },
                             {
                                 "type": "actions",
