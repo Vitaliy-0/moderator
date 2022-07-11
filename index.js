@@ -311,10 +311,10 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
 
 app.action("moderator_action_settings", async ({ ack, client, body, action, payload }) => {
     await ack();
-    console.log('body', body)
-    console.log('payload', payload)
-    const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN });
 
+    const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN });
+    const secList = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN, cursor: list.response_metadata.next_cursor })
+    console.log(secList)
     const channelsAsOptions = list.channels.map(ch => ({
         "text": {
             "type": "plain_text",
