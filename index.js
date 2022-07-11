@@ -429,15 +429,23 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
         return false;
     }
 
-    const channels = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim' });
+    const channels = [];
+    const list = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim' });
+
+    if (list.response_metadata.acceptedScopes) {
+        const seclist = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim', cursor: list.response_metadata.next_cursor });
+        const channels = [...list.channels, ...seclist.channels];
+    } else {
+        channels = list.channels
+    }
 
     try {
         channelForModeration = view.state.values.channel_for_moderation['static_select-action']['selected_options'] || null;
         moderationChannel = view.state.values.moderator_channel['static_select-action']['selected_option'] || null;
         usersWithoutModeration = view.state.values['users_without_moderation']['multi_users_select-action']['selected_users'];
         const ids = channelForModeration.map(it => it.value)
-        const isInChannelForModeration = ids.filter(el => !channels.channels.some(it => it.is_member && it.id === el))
-        const isInModerationChannel = channels.channels.find(el => el.id === moderationChannel.value);
+        const isInChannelForModeration = ids.filter(el => !channels.some(it => it.is_member && it.id === el))
+        const isInModerationChannel = channels.find(el => el.id === moderationChannel.value);
 
         const err = validate(moderationChannel.value, channelForModeration.map(el => el.value))
 
