@@ -312,7 +312,7 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
 app.action("moderator_action_settings", async ({ ack, client, body, action, payload }) => {
     await ack();
 
-    const channels = []
+    let channels = []
 
     const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN });
     
@@ -429,12 +429,12 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
         return false;
     }
 
-    const channels = [];
+    let channels = [];
     const list = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim' });
 
     if (list.response_metadata.acceptedScopes) {
         const seclist = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim', cursor: list.response_metadata.next_cursor });
-        const channels = [...list.channels, ...seclist.channels];
+        channels = [...list.channels, ...seclist.channels];
     } else {
         channels = list.channels
     }
