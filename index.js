@@ -309,10 +309,11 @@ app.action("verify_cancel_button", async ({ ack, body, client }) => {
     }
 });
 
-app.action("moderator_action_settings", async ({ ack, client, body, action }) => {
+app.action("moderator_action_settings", async ({ ack, client, body, action, payload }) => {
     await ack();
-
-    const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN, cursor: 'next_cursor' });
+    console.log('body', body)
+    console.log('payload', payload)
+    const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN });
 
     const channelsAsOptions = list.channels.map(ch => ({
         "text": {
