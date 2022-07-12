@@ -19,9 +19,14 @@ let moderationChannel = null;;
 let channelForModeration = null;
 let usersWithoutModeration = [];
 
-app.event('app_home_opened', async ({ event, client }) => {
+app.event('app_home_opened', async ({ event, client, context }) => {
     try {
+
         const user = await client.users.info({ user: event.user });
+        const users = await client.users.list();
+
+        const transformedUsers = users.members.filter(user => usersWithoutModeration.includes(user.id))
+            .map(user => `<@${user.name}>`);
 
         if (channelForModeration && moderationChannel) {
             await client.views.publish({
@@ -51,7 +56,8 @@ app.event('app_home_opened', async ({ event, client }) => {
                             "text": {
                                 "type": "plain_text",
                                 "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
-Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}
+${transformedUsers?.length ? 'Пользователи без модерации: ' + transformedUsers.join(', ') : ''}`,
                                 "emoji": true
                             }
                         },
@@ -114,14 +120,13 @@ app.event('app_home_opened', async ({ event, client }) => {
                             }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": "Чтобы настроить бота, нажмите на кнопку ниже",
-                                    "emoji": true
-                                }
-                            ]
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: нету
+Канал, куда отправлять сообщения на проверку перед публикацией: нету`,
+                                "emoji": true
+                            }
                         },
                         {
                             "type": "actions",
@@ -147,14 +152,13 @@ app.event('app_home_opened', async ({ event, client }) => {
                             }
                         },
                         {
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "plain_text",
-                                    "text": "Данный бот ещё не настроен. Сделать это может администратор.",
-                                    "emoji": true
-                                }
-                            ]
+                            "type": "section",
+                            "text": {
+                                "type": "plain_text",
+                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: нету
+Канал, куда отправлять сообщения на проверку перед публикацией: нету`,
+                                "emoji": true
+                            }
                         }
                     ]
                 }
@@ -325,6 +329,14 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
         "value": ch.id
     }))
 
+    const transformedChannels = channelForModeration && channelForModeration.map(el => ({
+        "value": el.value,
+        "text": {
+            "type": "plain_text",
+            "text": el.text.text
+        }
+    }))
+
     try {
         await client.views.open({
             trigger_id: body.trigger_id,
@@ -351,7 +363,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                     {
                         "block_id": "channel_for_moderation",
                         "type": "input",
-                        "element": {
+                        "element": channelForModeration ? {
                             "type": "multi_static_select",
                             "placeholder": {
                                 "type": "plain_text",
@@ -360,6 +372,16 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             },
                             "options": channelsAsOptions,
                             "action_id": "static_select-action",
+                            "initial_options": transformedChannels
+                        } : {
+                            "type": "multi_static_select",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Выберите канал для модерации",
+                                "emoji": true
+                            },
+                            "options": channelsAsOptions,
+                            "action_id": "static_select-action"
                         },
                         "label": {
                             "type": "plain_text",
@@ -370,7 +392,23 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                     {
                         "block_id": "moderator_channel",
                         "type": "input",
-                        "element": {
+                        "element": moderationChannel ? {
+                            "type": "static_select",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "Выберите канал модератора",
+                                "emoji": true
+                            },
+                            "options": channelsAsOptions,
+                            "action_id": "static_select-action",
+                            "initial_option": {
+                                "value": moderationChannel.value,
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": moderationChannel.text.text
+                                }
+                            }
+                        } : {
                             "type": "static_select",
                             "placeholder": {
                                 "type": "plain_text",
@@ -396,13 +434,15 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                                 "text": "Выберите пользователей",
                                 "emoji": true
                             },
-                            "action_id": "multi_users_select-action"
+                            "action_id": "multi_users_select-action",
+                            "initial_users": usersWithoutModeration
                         },
                         "label": {
                             "type": "plain_text",
                             "text": "Пользователи без модерации",
                             "emoji": true
-                        }
+                        },
+                        "optional": true
                     }
                 ]
             }
@@ -441,7 +481,11 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
         const isInChannelForModeration = ids.filter(el => !channels.some(it => it.is_member && it.id === el))
         const isInModerationChannel = channels.find(el => el.id === moderationChannel.value);
 
-        const err = validate(moderationChannel.value, channelForModeration.map(el => el.value))
+        const err = validate(moderationChannel.value, channelForModeration.map(el => el.value));
+
+        const users = await client.users.list();
+        const transformedUsers = users.members.filter(user => usersWithoutModeration.includes(user.id))
+            .map(user => `<@${user.name}>`);
 
         if (err) {
             await ack({
@@ -494,7 +538,8 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
                                 "text": {
                                     "type": "plain_text",
                                     "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
-Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}
+${transformedUsers?.length ? 'Пользователи без модерации: ' + transformedUsers.join(', ') : ''}`,
                                     "emoji": true
                                 }
                             },
