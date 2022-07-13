@@ -1,6 +1,10 @@
-const { App } = require('@slack/bolt');
-const dotenv = require('dotenv');
+import pkg from '@slack/bolt';
+import dotenv from 'dotenv';
+import { t } from './translations.js';
+
 dotenv.config();
+
+const { App } = pkg;
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
@@ -19,12 +23,11 @@ let moderationChannel = null;;
 let channelForModeration = null;
 let usersWithoutModeration = [];
 
-app.event('app_home_opened', async ({ event, client, context }) => {
+app.event('app_home_opened', async ({ event, client }) => {
     try {
-
-        const user = await client.users.info({ user: event.user });
+        const user = await client.users.info({ user: event.user, include_locale: true });
         const users = await client.users.list();
-
+        const lang = user.user.locale;
         const transformedUsers = users.members.filter(user => usersWithoutModeration.includes(user.id))
             .map(user => `<@${user.name}>`);
 
@@ -39,7 +42,7 @@ app.event('app_home_opened', async ({ event, client, context }) => {
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бот-Moderator!",
+                                "text": t(lang, "Добро пожаловать в бот-Moderator!"),
                                 "emoji": true
                             }
                         },
@@ -47,7 +50,7 @@ app.event('app_home_opened', async ({ event, client, context }) => {
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                "text": t(lang, 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах') + '.',
                                 "emoji": true
                             }
                         },
@@ -55,9 +58,9 @@ app.event('app_home_opened', async ({ event, client, context }) => {
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
-Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}
-${transformedUsers?.length ? 'Пользователи без модерации: ' + transformedUsers.join(', ') : ''}`,
+                                "text": `${t(lang, "Каналы, сообщения в которых нужно отправлять на проверку")}: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+${t(lang, 'Канал, куда отправлять сообщения на проверку перед публикацией')}: #${moderationChannel.text.text}
+${transformedUsers?.length ? t(lang, 'Пользователи без модерации') + ': ' + transformedUsers.join(', ') : ''}`,
                                 "emoji": true
                             }
                         },
@@ -68,7 +71,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                                     "type": "button",
                                     "text": {
                                         "type": "plain_text",
-                                        "text": "Настройка"
+                                        "text": t(lang, 'Настройка')
                                     },
                                     "value": event.user,
                                     "action_id": "moderator_action_settings"
@@ -80,7 +83,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бот-Moderator!",
+                                "text": t(lang, 'Добро пожаловать в бот-Moderator!'),
                                 "emoji": true
                             }
                         },
@@ -88,7 +91,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                "text": t(lang, 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах') + '.',
                                 "emoji": true
                             }
                         },
@@ -96,8 +99,8 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
-Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}`,
+                                "text": `${t(lang, 'Каналы, сообщения в которых нужно отправлять на проверку')}: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+${t(lang, 'Канал, куда отправлять сообщения на проверку перед публикацией')}: #${moderationChannel.text.text}`,
                                 "emoji": true
                             }
                         },
@@ -115,7 +118,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бот-Moderator!",
+                                "text": t(lang, "Добро пожаловать в бот-Moderator!"),
                                 "emoji": true
                             }
                         },
@@ -123,8 +126,8 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: нету
-Канал, куда отправлять сообщения на проверку перед публикацией: нету`,
+                                "text": `${t(lang, 'Каналы, сообщения в которых нужно отправлять на проверку')}: ${t(lang, 'нету')}
+${t(lang, 'Канал, куда отправлять сообщения на проверку перед публикацией')}: ${t(lang, 'нету')}`,
                                 "emoji": true
                             }
                         },
@@ -135,7 +138,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                                     "type": "button",
                                     "text": {
                                         "type": "plain_text",
-                                        "text": "Настройка"
+                                        "text": t(lang, 'Настройка')
                                     },
                                     "value": event.user,
                                     "action_id": "moderator_action_settings"
@@ -147,7 +150,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "header",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Добро пожаловать в бот-Moderator!",
+                                "text": t(lang, 'Добро пожаловать в бот-Moderator!'),
                                 "emoji": true
                             }
                         },
@@ -155,8 +158,8 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                             "type": "section",
                             "text": {
                                 "type": "plain_text",
-                                "text": `Каналы, сообщения в которых нужно отправлять на проверку: нету
-Канал, куда отправлять сообщения на проверку перед публикацией: нету`,
+                                "text": `${t(lang, 'Каналы, сообщения в которых нужно отправлять на проверку')}: ${t(lang, 'нету')}
+${t(lang, 'Канал, куда отправлять сообщения на проверку перед публикацией')}: ${t(lang, 'нету')}`,
                                 "emoji": true
                             }
                         }
@@ -178,6 +181,9 @@ app.event('message', async ({ event, message, client, payload }) => {
 
     if (!moderationChannel || message.parent_user_id) return;
 
+    const userInfo = await client.users.info({ user: event.user, include_locale: true });
+    const lang = userInfo.user.locale;
+
     try {
         await client.chat.delete({
             token: process.env.SLACK_USER_TOKEN,
@@ -188,7 +194,7 @@ app.event('message', async ({ event, message, client, payload }) => {
         await client.chat.postEphemeral({
             user: event.user,
             channel: event.channel,
-            text: "Ваше сообщение будет опубликовано после проверки модератором."
+            text: t(lang, 'Ваше сообщение будет опубликовано после проверки модератором') + "."
         });
 
         await app.client.chat.postMessage({
@@ -199,7 +205,7 @@ app.event('message', async ({ event, message, client, payload }) => {
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": `Новое сообщение от <@${fromUser && fromUser.name}>`
+                        "text": `${t(lang, 'Новое сообщение от')} <@${fromUser && fromUser.name}>`
                     }
                 },
                 {
@@ -216,7 +222,7 @@ app.event('message', async ({ event, message, client, payload }) => {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Опубликовать сообщение в канале #${channelForModeration.find(el => el.value === event.channel).text.text} ?`
+                        "text": `${t(lang, 'Опубликовать сообщение в канале')} #${channelForModeration.find(el => el.value === event.channel).text.text} ?`
                     }
                 },
                 {
@@ -227,7 +233,7 @@ app.event('message', async ({ event, message, client, payload }) => {
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Отклонить"
+                                "text": t(lang, 'Отклонить')
                             },
                             "value": "ok",
                             "action_id": "verify_cancel_button"
@@ -236,7 +242,7 @@ app.event('message', async ({ event, message, client, payload }) => {
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Подтвердить"
+                                "text": t(lang, 'Подтвердить')
                             },
                             "value": `${channelForModeration.find(el => el.value === event.channel).text.text} ${fromUser && fromUser.name}`,
                             "action_id": "verify_ok_button",
@@ -313,7 +319,10 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
     let channels = []
 
     const list = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN });
-    
+    const userInfo = await client.users.info({ user: action.value, include_locale: true });
+
+    const lang = userInfo.user.locale;
+
     if (list.response_metadata.next_cursor) {
         const secList = await client.conversations.list({ types: "public_channel,private_channel", token: process.env.SLACK_BOT_TOKEN, cursor: list.response_metadata.next_cursor });
         channels = [...list.channels, ...secList.channels]
@@ -345,17 +354,17 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                 "type": "modal",
                 "title": {
                     "type": "plain_text",
-                    "text": "Moderator - настройка",
+                    "text": t(lang, 'Moderator - настройка'),
                     "emoji": true
                 },
                 "submit": {
                     "type": "plain_text",
-                    "text": "Подтвердить",
+                    "text": t(lang, 'Подтвердить'),
                     "emoji": true
                 },
                 "close": {
                     "type": "plain_text",
-                    "text": "Отмена",
+                    "text": t(lang, 'Отмена'),
                     "emoji": true,
 
                 },
@@ -367,7 +376,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             "type": "multi_static_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите канал для модерации",
+                                "text": t(lang, 'Выберите канал для модерации'),
                                 "emoji": true
                             },
                             "options": channelsAsOptions,
@@ -377,7 +386,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             "type": "multi_static_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите канал для модерации",
+                                "text": t(lang, 'Выберите канал для модерации'),
                                 "emoji": true
                             },
                             "options": channelsAsOptions,
@@ -385,7 +394,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                         },
                         "label": {
                             "type": "plain_text",
-                            "text": "Канал для модерации",
+                            "text": t(lang, 'Канал для модерации'),
                             "emoji": true
                         }
                     },
@@ -396,7 +405,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             "type": "static_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите канал модератора",
+                                "text": t(lang, 'Выберите канал модератора'),
                                 "emoji": true
                             },
                             "options": channelsAsOptions,
@@ -412,7 +421,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             "type": "static_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите канал модератора",
+                                "text": t(lang, 'Выберите канал модератора'),
                                 "emoji": true
                             },
                             "options": channelsAsOptions,
@@ -420,7 +429,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                         },
                         "label": {
                             "type": "plain_text",
-                            "text": "Канал модератора",
+                            "text": t(lang, 'Канал модератора'),
                             "emoji": true
                         }
                     },
@@ -431,7 +440,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                             "type": "multi_users_select",
                             "placeholder": {
                                 "type": "plain_text",
-                                "text": "Выберите пользователей",
+                                "text": t(lang, 'Выберите пользователей'),
                                 "emoji": true
                             },
                             "action_id": "multi_users_select-action",
@@ -439,7 +448,7 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
                         },
                         "label": {
                             "type": "plain_text",
-                            "text": "Пользователи без модерации",
+                            "text": t(lang, 'Пользователи без модерации'),
                             "emoji": true
                         },
                         "optional": true
@@ -453,21 +462,24 @@ app.action("moderator_action_settings", async ({ ack, client, body, action, payl
 });
 
 app.view("settings_callback", async ({ ack, view, client, body }) => {
+    const userInfo = await client.users.info({ user: body.user.id, include_locale: true });
+    const lang = userInfo.user.locale;
+
     function validate(sourse, target) {
         const errors = {};
 
         if (target.includes(sourse)) {
-            errors.moderator_channel = 'Канал должен отличатся';
+            errors.moderator_channel = t(lang, 'Канал должен отличатся');
             return errors;
         }
         return false;
     }
 
     let channels = [];
-    const list = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim' });
+    const list = await client.conversations.list({ types: 'public_channel, private_channel' });
 
     if (list.response_metadata.acceptedScopes) {
-        const seclist = await client.conversations.list({ types: 'public_channel, private_channel, im, mpim', cursor: list.response_metadata.next_cursor });
+        const seclist = await client.conversations.list({ types: 'public_channel, private_channel', cursor: list.response_metadata.next_cursor });
         channels = [...list.channels, ...seclist.channels];
     } else {
         channels = list.channels
@@ -521,7 +533,7 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
                                 "type": "header",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": "Добро пожаловать в бот-Moderator!",
+                                    "text": t(lang, 'Добро пожаловать в бот-Moderator!'),
                                     "emoji": true
                                 }
                             },
@@ -529,7 +541,7 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
                                 "type": "section",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах.',
+                                    "text": t(lang, 'Данный бот позволяет Вам проверять перед публикацией сообщения, которые участники пространства публикуют в открытых каналах') + '.',
                                     "emoji": true
                                 }
                             },
@@ -537,9 +549,9 @@ app.view("settings_callback", async ({ ack, view, client, body }) => {
                                 "type": "section",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": `Каналы, сообщения в которых нужно отправлять на проверку: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
-Канал, куда отправлять сообщения на проверку перед публикацией: #${moderationChannel.text.text}
-${transformedUsers?.length ? 'Пользователи без модерации: ' + transformedUsers.join(', ') : ''}`,
+                                    "text": `${t(lang, 'Каналы, сообщения в которых нужно отправлять на проверку')}: ${channelForModeration.map(el => `#${el.text.text}`).join(', ')}
+${t(lang, 'Канал, куда отправлять сообщения на проверку перед публикацией')}: #${moderationChannel.text.text}
+${transformedUsers?.length ? t(lang, 'Пользователи без модерации') + ': ' + transformedUsers.join(', ') : ''}`,
                                     "emoji": true
                                 }
                             },
@@ -550,7 +562,7 @@ ${transformedUsers?.length ? 'Пользователи без модерации
                                         "type": "button",
                                         "text": {
                                             "type": "plain_text",
-                                            "text": "Настройка"
+                                            "text": t(lang, 'Настройка')
                                         },
                                         "value": `${body.user.id}`,
                                         "action_id": "moderator_action_settings"
