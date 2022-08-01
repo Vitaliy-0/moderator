@@ -17,8 +17,10 @@ const translations = {
     'Канал должен отличатся': 'The channel must be different',
     'Ваше сообщение будет опубликовано после проверки модератором': 'Your message will be published after being moderated',
     'Новое сообщение от': 'New message from',
+    'Сообщение от': 'Message from',
     'Опубликовать сообщение в канале': 'Post a message to a channel',
-    'Отклонить': 'Reject'
+    'Отклонить': 'Reject',
+    'Отклонено': 'Rejected'
 }
 
 export function t(lang, default_str) {

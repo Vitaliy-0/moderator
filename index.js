@@ -209,6 +209,7 @@ app.event('message', async ({ event, message, client, payload }) => {
                     }
                 },
                 {
+                    "block_id": "message_block",
                     "type": "section",
                     "text": {
                         "type": "plain_text",
@@ -300,13 +301,46 @@ app.action("verify_ok_button", async ({ ack, body, client, action }) => {
     }
 });
 
-app.action("verify_cancel_button", async ({ ack, body, client }) => {
+app.action("verify_cancel_button", async ({ ack, body, client, action }) => {
     await ack();
 
+    const userMessage = body.message.blocks.find(block => block.block_id === 'message_block')?.text?.text;
+
+    const users = await client.users.list();
+    const fromUser = users.ok && users.members.find(el => el.id === body.user.id);
+    const userInfo = await client.users.info({ user: body.user.id, include_locale: true });
+    const lang = userInfo.user.locale;
+
     try {
-        await client.chat.delete({
+        await client.chat.update({
             channel: body.channel.id,
-            ts: body.message.ts
+            ts: body.message.ts,
+            blocks: [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `${t(lang, 'Сообщение от')} <@${fromUser && fromUser.name}>`
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": userMessage
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `${t(lang, 'Отклонено')}`
+                    }
+                }
+            ]
         })
     } catch (e) {
         console.error(e)
