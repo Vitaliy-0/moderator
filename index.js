@@ -203,6 +203,7 @@ app.event('message', async ({ event, message, client, payload }) => {
             blocks: [
                 {
                     "type": "header",
+                    "block_id": fromUser && fromUser.name,
                     "text": {
                         "type": "plain_text",
                         "text": `${t(lang, 'Новое сообщение от')} <@${fromUser && fromUser.name}>`
@@ -303,11 +304,9 @@ app.action("verify_ok_button", async ({ ack, body, client, action }) => {
 
 app.action("verify_cancel_button", async ({ ack, body, client, action }) => {
     await ack();
-
     const userMessage = body.message.blocks.find(block => block.block_id === 'message_block')?.text?.text;
+    const fromUser = body.message.blocks.find(block => block.type === 'header').block_id;
 
-    const users = await client.users.list();
-    const fromUser = users.ok && users.members.find(el => el.id === body.user.id);
     const userInfo = await client.users.info({ user: body.user.id, include_locale: true });
     const lang = userInfo.user.locale;
 
@@ -318,9 +317,10 @@ app.action("verify_cancel_button", async ({ ack, body, client, action }) => {
             blocks: [
                 {
                     "type": "header",
+                    "block_id": fromUser,
                     "text": {
                         "type": "plain_text",
-                        "text": `${t(lang, 'Сообщение от')} <@${fromUser && fromUser.name}>`
+                        "text": `${t(lang, 'Сообщение от')} <@${fromUser}>`
                     }
                 },
                 {
